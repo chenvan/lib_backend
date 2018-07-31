@@ -2,3 +2,4 @@ node_modules
 
 test_data.txt
 output.txt
+knexfile.js
