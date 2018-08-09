@@ -5,6 +5,7 @@
   "author": "AWang",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^3.0.0",
     "knex": "^0.15.2",
     "node-fetch": "^2.1.2",
     "pg": "^7.4.3"

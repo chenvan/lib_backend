@@ -1,5 +1,4 @@
-const knex_config = require('../knexfile')['development']
-const knex = require('knex')(knex_config)
+const knex = require('../db/knex')
 
 jest.setTimeout(30000)
 
