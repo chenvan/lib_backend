@@ -21,8 +21,9 @@ exports.up = function(knex, Promise) {
       table.integer('now_number').unsigned().notNullable()
     
     })
-      .raw('CREATE INDEX pgroonga_title_index ON book USING pgroonga (title)')
-      .raw('CREATE INDEX pgroonga_author_index ON book USING pgroonga (author)')
+      //.raw('CREATE INDEX pgroonga_title_index ON book USING pgroonga (title)')
+      //.raw('CREATE INDEX pgroonga_author_index ON book USING pgroonga (author)')
+      .raw('CREATE INDEX pgroonga_title_and_author_index ON book USING pgroonga ((ARRAY[title, author]))')
       .raw('ALTER TABLE book ADD CONSTRAINT valid_now_number_check CHECK (total_number >= now_number)')
       ,
 
