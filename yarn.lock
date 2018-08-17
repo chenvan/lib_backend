@@ -2195,6 +2195,10 @@ koa-jwt@^3.3.2:
     jsonwebtoken "8.0.0"
     koa-unless "1.0.0"
 
+koa-sslify@^2.1.2:
+  version "2.1.2"
+  resolved "http://registry.npm.taobao.org/koa-sslify/download/koa-sslify-2.1.2.tgz#8947fd53949d69d539607814097863c1ecf38f30"
+
 koa-unless@1.0.0:
   version "1.0.0"
   resolved "http://registry.npm.taobao.org/koa-unless/download/koa-unless-1.0.0.tgz#5aa57384bc882568afc90ac04852a3d58658aeeb"

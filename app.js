@@ -1,14 +1,17 @@
 const http = require('http')
-// const https = require('https')
+const https = require('https')
+const fs = require('fs')
 
 const Koa = require('koa')
+const enforceHttps = require('koa-sslify')
 const bodyParser = require('koa-bodyparser')
 const jwt = require('jsonwebtoken')
 const koaJwt = require('koa-jwt')
 
-const app = new Koa();
+const app = new Koa()
 
-app.use(bodyParser());
+app.use(enforceHttps())
+app.use(bodyParser())
 
 app.use(async (ctx, next) => {
   try {
@@ -25,6 +28,7 @@ app.use(async (ctx, next) => {
     ctx.body = {
       message: 'hello world'
     }
+    ctx.status = 200
   } else {
     await next()
   }
@@ -50,13 +54,24 @@ app.use(async (ctx, next) => {
     ctx.body = {
       message: 'hello world'
     }
+    ctx.status = 200
   } else {
     await next()
   }
 })
 
+const options = {
+  key: fs.readFileSync('./ssl/server.key'),
+  cert: fs.readFileSync('./ssl/server.crt'),
+  requestCert: false,
+  rejectUnauthorized: false
+}
 
 http.createServer(app.callback()).listen(80, () => {
   console.log('running http server')
+})
+
+https.createServer(options, app.callback()).listen(443, () => {
+  console.log('running https server')
 })
 

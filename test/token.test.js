@@ -1,7 +1,12 @@
 const knex = require('../db/knex')
+const https = require('https')
 const fetch = require('node-fetch')
 
 jest.setTimeout(30000)
+
+const agent = new https.Agent({
+  rejectUnauthorized: false
+})
 
 beforeAll(() => {
   return knex.migrate.rollback()
@@ -16,7 +21,7 @@ afterAll(() => {
 })
 
 test('visit protected link without token', () => {
-  return fetch('http://localhost/api/test/2')
+  return fetch('https://localhost/api/test/2', {agent})
     .then(res => res.json())
     .then(res => {
       expect(res.message).toBe('Authentication Error')
@@ -24,11 +29,11 @@ test('visit protected link without token', () => {
 })
 
 test('visit protected link with token', () => {
-  return fetch('http://localhost/api/login', {
+  return fetch('https://localhost/api/login', {
     method: 'POST',
     body: JSON.stringify({uid: '001960', pwd: '001960'}),
     headers: {'Content-Type': 'application/json'},
-    // agent: agent
+    agent
   })
     .then(res => res.json())
     .then(res => {
@@ -36,8 +41,9 @@ test('visit protected link with token', () => {
       return res.token
     })
     .then(token => {
-      return fetch('http://localhost/api/test/2',{
-        headers: {'Authorization': 'Bearer ' + token}
+      return fetch('https://localhost/api/test/2',{
+        headers: {'Authorization': 'Bearer ' + token},
+        agent
       })
     })
     .then(res => res.json())
