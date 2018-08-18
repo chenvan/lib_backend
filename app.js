@@ -8,6 +8,8 @@ const bodyParser = require('koa-bodyparser')
 const jwt = require('jsonwebtoken')
 const koaJwt = require('koa-jwt')
 
+const db = require('./db/op')
+
 const app = new Koa()
 
 app.use(enforceHttps())
@@ -36,9 +38,11 @@ app.use(async (ctx, next) => {
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/login/)) {
-    // ctx.body = await op.checkUser()
+    let user = await db.verifyUser(ctx.request.body.uid, ctx.request.body.pwd)
+    // how to check if isAdmin
     ctx.body = {
-      token: jwt.sign({uid: '001960'}, 'changeit', {expiresIn: '10s'})
+      user,
+      token: jwt.sign({uid: user.id, isAdmin: false}, 'changeit', {expiresIn: '10s'})
     }
     ctx.status = 200
   } else {
@@ -50,7 +54,7 @@ app.use(koaJwt({secret: 'changeit', key: 'jwtdata'}))
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/test\/2/)) {
-    console.log('jwt data:', ctx.state.jwtdata)
+    // console.log('jwt data:', ctx.state.jwtdata)
     ctx.body = {
       message: 'hello world'
     }

@@ -38,6 +38,7 @@ test('visit protected link with token', () => {
     .then(res => res.json())
     .then(res => {
       expect(res).toHaveProperty('token')
+      expect(res).toHaveProperty('user')
       return res.token
     })
     .then(token => {
@@ -50,4 +51,6 @@ test('visit protected link with token', () => {
     .then(res =>{
       expect(res.message).toBe('hello world')
     })
+
+    // check token invalid
 })
