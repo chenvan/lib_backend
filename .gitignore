@@ -1,5 +1,16 @@
+# folder
 node_modules
 test_data
 ssl
 
-knexfile.js
+
+# document
+# uid, pwd, fakeUid, fakePwd
+test/test.data.json
+# secrect
+library.setting.json
+# development : { database, user, password }
+# production : {database, user, password }
+knex.setting.json
+
+yarn.error.log

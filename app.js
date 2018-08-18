@@ -10,6 +10,8 @@ const koaJwt = require('koa-jwt')
 
 const db = require('./db/op')
 
+const libSetting = require('./library.setting.json')
+
 const app = new Koa()
 
 app.use(enforceHttps())
@@ -42,7 +44,7 @@ app.use(async (ctx, next) => {
     // how to check if isAdmin
     ctx.body = {
       user,
-      token: jwt.sign({uid: user.id, isAdmin: false}, 'changeit', {expiresIn: '10s'})
+      token: jwt.sign({uid: user.uid, isAdmin: false}, libSetting.secret, {expiresIn: '10s'})
     }
     ctx.status = 200
   } else {
@@ -50,15 +52,59 @@ app.use(async (ctx, next) => {
   }
 })
 
-app.use(koaJwt({secret: 'changeit', key: 'jwtdata'}))
+app.use(koaJwt({secret: libSetting.secret, key: 'jwtdata'}))
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/test\/2/)) {
-    // console.log('jwt data:', ctx.state.jwtdata)
     ctx.body = {
       message: 'hello world'
     }
     ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+// combine fav, history, borrowing api to one api 
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/fav/)) {
+    let favList = await db.getUserInfo('fav', ctx.state.jwtdata.uid)
+    ctx.body = {
+      favList
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/history/)) {
+    let historyList = await db.getUserInfo('history', ctx.state.jwtdata.uid)
+    ctx.body = {
+      historyList
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/borrowing/)) {
+    let borrowingList = await db.getUserInfo('borrowing', ctx.state.jwtdata.uid)
+    ctx.body = {
+      borrowingList
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/type/)) {
+
   } else {
     await next()
   }

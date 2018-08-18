@@ -2,6 +2,8 @@ const knex = require('../db/knex')
 const https = require('https')
 const fetch = require('node-fetch')
 
+const testData = require('./test.data.json')
+
 jest.setTimeout(30000)
 
 const agent = new https.Agent({
@@ -23,7 +25,7 @@ afterAll(() => {
 test('login with correct info', () => {
   return fetch('https://localhost/api/login', {
     method: 'POST',
-    body: JSON.stringify({uid: '001960', pwd: '001960'}),
+    body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
     headers: {'Content-Type': 'application/json'},
     agent
   })
@@ -35,23 +37,22 @@ test('login with correct info', () => {
 })
 
 test('login with fake uid', () => {
-  let fakeUid = '000000'
   return fetch('https://localhost/api/login', {
     method: 'POST',
-    body: JSON.stringify({uid: fakeUid, pwd: '001960'}),
+    body: JSON.stringify({uid: testData.fakeUid, pwd: testData.pwd}),
     headers: {'Content-Type': 'application/json'},
     agent
   })
     .then(res => res.json())
     .then(res => {
-      expect(res.message).toBe(`不存在工号 ${fakeUid}`)
+      expect(res.message).toBe(`不存在工号 ${testData.fakeUid}`)
     })
 })
 
 test('login with fake password', () => {
   return fetch('https://localhost/api/login', {
     method: 'POST',
-    body: JSON.stringify({uid: '001960', pwd: '000000'}),
+    body: JSON.stringify({uid: testData.uid, pwd: testData.fakePwd}),
     headers: {'Content-Type': 'application/json'},
     agent
   })

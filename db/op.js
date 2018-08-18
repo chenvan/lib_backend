@@ -35,7 +35,15 @@ function verifyUser (uid, pwd) {
     })
 }
 
+function getUserInfo(tableName, uid) {
+  return knex.select().table(tableName)
+    .innerJoin('book', `${tableName}.bid`, 'book.bid')
+    .where('uid', uid)
+}
+
+
 module.exports = {
   search,
-  verifyUser
+  verifyUser,
+  getUserInfo
 }

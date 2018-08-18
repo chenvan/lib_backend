@@ -1,6 +1,7 @@
 const knex = require('../db/knex')
 const https = require('https')
 const fetch = require('node-fetch')
+const testData = require('./test.data.json')
 
 jest.setTimeout(30000)
 
@@ -31,7 +32,7 @@ test('visit protected link without token', () => {
 test('visit protected link with token', () => {
   return fetch('https://localhost/api/login', {
     method: 'POST',
-    body: JSON.stringify({uid: '001960', pwd: '001960'}),
+    body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
     headers: {'Content-Type': 'application/json'},
     agent
   })
