@@ -1,6 +1,8 @@
 const knex = require('./knex')
 const bcrypt = require('bcrypt')
 
+const salt_rounds = 10
+
 function search (info) {
   let op = Array.isArray(info) ? '&@~' : '&@'
   return knex.select(knex.raw('*, pgroonga_score(tableoid, ctid) AS score')).table('book')
@@ -10,7 +12,8 @@ function search (info) {
         searchInfo: Array.isArray(info) ? info.join(' OR ') : info,
         indexName: 'pgroonga_title_and_author_index'
       }
-  )
+    )
+    .orderBy('score', 'desc')
 }
 
 function verifyUser (uid, pwd) {
@@ -41,9 +44,46 @@ function getUserInfo(tableName, uid) {
     .where('uid', uid)
 }
 
+function getType() {
+  return knex.select('type').table('book').groupBy('type')
+}
+
+function searchType (type, lastBid = -1) { 
+  return knex.select().table('book')
+    .where('type', type)
+    .andWhere('bid', '>', lastBid)
+    .orderBy('bid')
+}
+
+function changepwd (uid, oldpwd, newpwd) {
+  return verifyUser(uid, oldpwd)
+    .then(() => {
+      return bcrypt.hash(newpwd, salt_rounds)
+    })
+    .then(hash_pwd => {
+      return knex('user').where('uid', uid)
+        .update('password', hash_pwd)
+    })
+}
+
+function addToFav (uid, bid) {
+  return knex('fav').insert({uid, bid})
+    .catch(err => {
+      if (err.message.includes('fav_uid_bid_unique')) {
+        throw Error('已收藏')
+      } else {
+        throw err
+      }
+    })
+}
+
 
 module.exports = {
   search,
   verifyUser,
-  getUserInfo
+  getUserInfo,
+  getType,
+  searchType,
+  changepwd,
+  addToFav
 }

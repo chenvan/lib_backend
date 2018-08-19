@@ -1,6 +1,7 @@
 # folder
 node_modules
 test_data
+# ssl cert
 ssl
 
 
@@ -13,4 +14,4 @@ library.setting.json
 # production : {database, user, password }
 knex.setting.json
 
-yarn.error.log
+yarn-error.log

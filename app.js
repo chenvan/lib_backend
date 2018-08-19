@@ -44,7 +44,7 @@ app.use(async (ctx, next) => {
     // how to check if isAdmin
     ctx.body = {
       user,
-      token: jwt.sign({uid: user.uid, isAdmin: false}, libSetting.secret, {expiresIn: '10s'})
+      token: jwt.sign({uid: user.uid, isAdmin: false}, libSetting.secret, {expiresIn: '1h'})
     }
     ctx.status = 200
   } else {
@@ -104,11 +104,64 @@ app.use(async (ctx, next) => {
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/type/)) {
-
+    let typeList = await db.getType()
+    ctx.body = {
+      typeList
+    }
+    ctx.status = 200
   } else {
     await next()
   }
 })
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/search$/)) {
+    let resultList = await db.search(ctx.request.body.info)
+    ctx.body = {
+      resultList
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/searchtype/)) {
+    let resultList = await db.searchType(ctx.request.body.type, ctx.request.body.lastBid)
+    ctx.body = {
+      resultList
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  } 
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/changepwd/)) {
+    await db.changepwd(ctx.state.jwtdata.uid, ctx.request.body.oldpwd, ctx.request.body.newpwd)
+    ctx.body = {
+      message: '密码修改成功'
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/addtofav/)) {
+    await db.addToFav(ctx.state.jwtdata.uid, ctx.request.body.bid)
+    ctx.body = {
+      message: '添加成功'
+    }
+    ctx.status = 200
+  } else {
+    await next()
+  }
+})
+
 
 const options = {
   key: fs.readFileSync('./ssl/server.key'),
