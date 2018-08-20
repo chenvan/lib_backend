@@ -4,14 +4,19 @@ test_data
 # ssl cert
 ssl
 
-
 # document
-# uid, pwd, fakeUid, fakePwd
+# uid, pwd, fakeUid, fakePwd, adminUid, adminPwd
 test/test.data.json
 # secrect
 library.setting.json
 # development : { database, user, password }
 # production : {database, user, password }
 knex.setting.json
+# book: [{isbn, title, author, cover_url, summary, type, total_number, now_number}, ...]
+# user: [{uid, name, password}, ...]
+# admin: {uid, name, password}
+seeds/data.json
+# function to verify if user is admin 
+helper/isAdmin.js
 
 yarn-error.log

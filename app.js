@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken')
 const koaJwt = require('koa-jwt')
 
 const db = require('./db/op')
+const isAdmin = require('./helper/isAdmin')
 
 const libSetting = require('./library.setting.json')
 
@@ -44,7 +45,7 @@ app.use(async (ctx, next) => {
     // how to check if isAdmin
     ctx.body = {
       user,
-      token: jwt.sign({uid: user.uid, isAdmin: false}, libSetting.secret, {expiresIn: '1h'})
+      token: jwt.sign({uid: user.uid, isAdmin: isAdmin(user.uid)}, libSetting.secret, {expiresIn: '1h'})
     }
     ctx.status = 200
   } else {
@@ -161,6 +162,31 @@ app.use(async (ctx, next) => {
     await next()
   }
 })
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/borrow$/)) {
+
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/return/)) {
+
+  } else {
+    await next()
+  }
+})
+
+app.use(async (ctx, next) => {
+  if (ctx.url.match(/^\/api\/outdated/)) {
+
+  } else {
+    await next()
+  }
+})
+
 
 
 const options = {
