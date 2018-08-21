@@ -10,10 +10,35 @@ const agent = new https.Agent({
   rejectUnauthorized: false
 })
 
+let userToken 
+let adminToken
+
 beforeAll(() => {
   return knex.migrate.rollback()
     .then(() => knex.migrate.latest())
     .then(() => knex.seed.run())
+    .then(() => {
+      return Promise.all([
+        fetch('https://localhost/api/login', {
+          method: 'POST',
+          body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
+          headers: {'Content-Type': 'application/json'},
+          agent
+        })
+          .then(res => res.json()),
+        fetch('https://localhost/api/login', {
+          method: 'POST',
+          body: JSON.stringify({uid: testData.adminUid, pwd: testData.adminPwd}),
+          headers: {'Content-Type': 'application/json'},
+          agent
+        })
+          .then(res => res.json())
+      ])
+    })
+    .then(resList => {
+      userToken = resList[0].token
+      adminToken = resList[1].token
+    })
 })
 
 afterAll(() => {
@@ -24,24 +49,9 @@ afterAll(() => {
 
 
 describe('test general api', () => {
-  let token = ''
-
-  beforeAll(() => {
-    return fetch('https://localhost/api/login', {
-      method: 'POST',
-      body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
-      headers: {'Content-Type': 'application/json'},
-      agent
-    })
-      .then(res => res.json())
-      .then(res => {
-        token = res.token
-      })
-  })
-  
   test('get user favorite list', () => {
     return fetch('https://localhost/api/fav', {
-      headers: {'Authorization': 'Bearer ' + token},
+      headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
       .then(res => res.json())
@@ -53,7 +63,7 @@ describe('test general api', () => {
   
   test('get user history list', () => {
     return fetch('https://localhost/api/history', {
-      headers: {'Authorization': 'Bearer ' + token},
+      headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
       .then(res => res.json())
@@ -65,7 +75,7 @@ describe('test general api', () => {
   
   test('get user borrowing list', () => {
     return fetch('https://localhost/api/borrowing', {
-      headers: {'Authorization': 'Bearer ' + token},
+      headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
       .then(res => res.json())
@@ -77,7 +87,7 @@ describe('test general api', () => {
   
   test('get book type', () => {
     return fetch('https://localhost/api/type', {
-      headers: {'Authorization': 'Bearer ' + token},
+      headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
       .then(res => res.json())
@@ -91,7 +101,7 @@ describe('test general api', () => {
     return fetch('https://localhost/api/search', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({info: ['紫金陈', '无证之罪']}),
@@ -108,7 +118,7 @@ describe('test general api', () => {
     return fetch('https://localhost/api/searchtype', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({type: '小说'}),
@@ -129,7 +139,7 @@ describe('test general api', () => {
             return fetch('https://localhost/api/addtofav', {
               method: 'POST',
               headers: {
-                'Authorization': 'Bearer ' + token,
+                'Authorization': 'Bearer ' + userToken,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({bid: item.bid}),
@@ -160,7 +170,7 @@ describe('test general api', () => {
     return fetch('https://localhost/api/changepwd', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({oldpwd: testData.pwd, newpwd: testData.changePwd}),
@@ -197,20 +207,50 @@ describe('test general api', () => {
 })
 
 describe('test admin api', () => {
-  let token = ''
+  let borrowingBidList
+  let noBorrowingBidList
 
   beforeAll(() => {
-    return fetch('https://localhost/api/login', {
-      method: 'POST',
-      body: JSON.stringify({uid: testData.adminUid, pwd: testData.adminPwd}),
-      headers: {'Content-Type': 'application/json'},
-      agent
-    })
-      .then(res => res.json())
-      .then(res => {
-        console.log('admin token:', token)
-        token = res.token
+    return Promise.all([
+      knex.select('bid').from('book'),
+      knex.select('bid').from('borrowing')
+    ])
+    .then(resList => {
+      console.log(resList)
+      let bidList = resList[0]
+      borrowingBidList = resList[1]
+      // borrowingBidList has dupicated value
+      noBorrowingBidList = bidList.filter(item => {
+        return borrowingBidList.every( borrowingItem => borrowingItem.bid !== item.bid)
       })
+
+      console.log(borrowingBidList, noBorrowingBidList)
+    })
   })
 
+  test('borrow book', () => {
+    fetch('https://localhost/api/borrow', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: borrowingBidList[0].bid}), // borrow the same book
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      console.log(res)
+      return Promise.all([
+        knex.select('total_number', 'now_number').from('book').where('bid', borrowingBidList[0].bid),
+        knex.select().from('borrowing').where('uid', testData.uid),
+        knex.select().from('history').where('uid', testData.uid)
+      ])
+    })
+    .then(resList => {
+      console.log('book: ', resList[0])
+      console.log('borrowing: ', resList[1])
+      console.log('history: ', resList[2])
+    })
+  })
 })

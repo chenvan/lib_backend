@@ -38,7 +38,8 @@ exports.up = function(knex, Promise) {
       table.string('uid').notNullable().references('uid').inTable('user').onDelete('CASCADE')
       table.integer('bid').unsigned().notNullable().references('bid').inTable('book').onDelete('CASCADE')
       table.dateTime('add_time').notNullable().defaultTo(knex.raw('now()'))
-      table.unique(['uid', 'bid'])
+      // table.unique(['uid', 'bid'])
+      // how to avoid duplicate the record in the same time??
     }),
 
     knex.schema.createTable('borrowing', function(table) {

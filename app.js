@@ -165,7 +165,12 @@ app.use(async (ctx, next) => {
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/borrow$/)) {
-
+    if (!ctx.state.jwtdata.isAdmin) ctx.throw(400, '非管理员') // the status is not correct
+    await db.borrowBook(ctx.request.body.uid, ctx.request.body.bid)
+    ctx.body = {
+      message: '借阅成功'
+    }
+    ctx.status = 200
   } else {
     await next()
   }

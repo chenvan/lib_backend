@@ -77,6 +77,27 @@ function addToFav (uid, bid) {
     })
 }
 
+function borrowBook (uid ,bid) {
+  return knex('borrowing').count('bid').where('uid', uid)
+    .then(([res]) => {
+      if (parseInt(res.count, 10) > 2) throw Error('超借书数量')
+      return knex.transaction(trx => {
+        return Promise.all([
+          trx
+            .where('bid', bid)
+            .decrement('now_number', 1)
+            .into('book'),
+          trx
+            .insert({uid, bid})
+            .into('history'),
+          trx
+            .insert({uid, bid})
+            .into('borrowing')
+        ])
+      })
+    })
+}
+
 
 module.exports = {
   search,
@@ -85,5 +106,6 @@ module.exports = {
   getType,
   searchType,
   changepwd,
-  addToFav
+  addToFav,
+  borrowBook
 }
