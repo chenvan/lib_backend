@@ -5,7 +5,11 @@ exports.up = function(knex, Promise) {
       table.string('uid').primary()
       table.string('name').notNullable()
       table.string('password').notNullable()
-    }),
+      table.integer('borrowing_number').defaultTo(0)
+    })
+      // user 需要用双引号, 因为系统自带 user 表, 需要用双引号识别
+      .raw('ALTER TABLE "user" ADD CONSTRAINT valid_borrowing_number CHECK (borrowing_number >= 0 AND borrowing_number <= 2)')
+    ,
 
     knex.schema.createTable('book', function(table) {
       table.increments('bid')
@@ -16,15 +20,15 @@ exports.up = function(knex, Promise) {
       table.text('cover_url')
       table.text('summary')
       // type column maybe should use enum
-      table.string('type')
-      table.integer('total_number').unsigned().notNullable()
-      table.integer('now_number').unsigned().notNullable()
+      table.string('type').notNullable()
+      table.integer('total_number').notNullable()
+      table.integer('now_number').notNullable()
     
     })
       //.raw('CREATE INDEX pgroonga_title_index ON book USING pgroonga (title)')
       //.raw('CREATE INDEX pgroonga_author_index ON book USING pgroonga (author)')
       .raw('CREATE INDEX pgroonga_title_and_author_index ON book USING pgroonga ((ARRAY[title, author]))')
-      .raw('ALTER TABLE book ADD CONSTRAINT valid_now_number_check CHECK (total_number >= now_number)')
+      .raw('ALTER TABLE book ADD CONSTRAINT valid_now_number_and_total_number CHECK (total_number >= now_number AND now_number >= 0 )')
       ,
 
     knex.schema.createTable('fav', function(table) {

@@ -78,23 +78,34 @@ function addToFav (uid, bid) {
 }
 
 function borrowBook (uid ,bid) {
-  return knex('borrowing').count('bid').where('uid', uid)
-    .then(([res]) => {
-      if (parseInt(res.count, 10) > 2) throw Error('超借书数量')
-      return knex.transaction(trx => {
-        return Promise.all([
-          trx
-            .where('bid', bid)
-            .decrement('now_number', 1)
-            .into('book'),
-          trx
-            .insert({uid, bid})
-            .into('history'),
-          trx
-            .insert({uid, bid})
-            .into('borrowing')
-        ])
-      })
+  return knex.transaction(trx => {
+    return Promise.all([
+      trx
+        .insert({uid, bid})
+        .into('borrowing'),
+      trx
+        .where('bid', bid)
+        .decrement('now_number', 1)
+        .into('book'),
+      trx
+        .where('uid', uid)
+        .increment('borrowing_number', 1)
+        .into('user'),
+      trx
+        .insert({uid, bid})
+        .into('history')
+    ])
+  })
+    .catch(err => {
+      if (err.message.includes('borrowing_uid_bid_unique')) {
+        throw Error('重复借书')
+      } else if(err.message.includes('valid_now_number_and_total_number')) {
+        throw Error('本书已借完')
+      } else if(err.message.includes('valid_borrowing_number')) {
+        throw Error('借书量超过规定')
+      }else {
+        throw err
+      }
     })
 }
 

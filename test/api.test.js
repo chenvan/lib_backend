@@ -176,81 +176,162 @@ describe('test general api', () => {
       body: JSON.stringify({oldpwd: testData.pwd, newpwd: testData.changePwd}),
       agent
     })
-      .then(res => res.json())
-      .then(res => {
-        expect(res.message).toBe('密码修改成功')
-        // use old password to login
-        return fetch('https://localhost/api/login', {
-          method: 'POST',
-          body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
-          headers: {'Content-Type': 'application/json'},
-          agent
-        })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('密码修改成功')
+      // use old password to login
+      return fetch('https://localhost/api/login', {
+        method: 'POST',
+        body: JSON.stringify({uid: testData.uid, pwd: testData.pwd}),
+        headers: {'Content-Type': 'application/json'},
+        agent
       })
-      .then(res => res.json())
-      .then(res => {
-        expect(res.message).toBe('密码错误')
-        // use new password to login
-        return fetch('https://localhost/api/login', {
-          method: 'POST',
-          body: JSON.stringify({uid: testData.uid, pwd: testData.changePwd}),
-          headers: {'Content-Type': 'application/json'},
-          agent
-        })
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('密码错误')
+      // use new password to login
+      return fetch('https://localhost/api/login', {
+        method: 'POST',
+        body: JSON.stringify({uid: testData.uid, pwd: testData.changePwd}),
+        headers: {'Content-Type': 'application/json'},
+        agent
       })
-      .then(res => res.json())
-      .then(res => {
-        expect(res).toHaveProperty('token')
-        expect(res).toHaveProperty('user')
-      })
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res).toHaveProperty('token')
+      expect(res).toHaveProperty('user')
+    })
   })
 })
 
 describe('test admin api', () => {
-  let borrowingBidList
-  let noBorrowingBidList
+  let canBeBorrowedBidList
+  let borrowingBidListBySelf
+  let borrowingBidListByOthers
 
   beforeAll(() => {
     return Promise.all([
-      knex.select('bid').from('book'),
-      knex.select('bid').from('borrowing')
+      knex.select('bid').from('book').where('now_number', '>', '0'),
+      knex.select('bid').from('borrowing').where('uid', testData.uid),
+      knex.select('bid').from('borrowing').whereNot('uid', testData.uid)
     ])
     .then(resList => {
-      console.log(resList)
-      let bidList = resList[0]
-      borrowingBidList = resList[1]
-      // borrowingBidList has dupicated value
-      noBorrowingBidList = bidList.filter(item => {
-        return borrowingBidList.every( borrowingItem => borrowingItem.bid !== item.bid)
-      })
-
-      console.log(borrowingBidList, noBorrowingBidList)
+      // 有库存的书
+      canBeBorrowedBidList = resList[0]
+      // 自己借的书
+      borrowingBidListBySelf = resList[1]
+      // 别人借的书, 即 now_number = 0 的书
+      borrowingBidListByOthers = resList[2]
+      
+      // console.log('borrowing bid list by self: ', borrowingBidListBySelf)
+      // console.log('borrowing bid list by others: ', borrowingBidListByOthers)
+      // console.log('cab be borrowed bid list: ', canBeBorrowedBidList)
     })
   })
 
-  test('borrow book', () => {
-    fetch('https://localhost/api/borrow', {
+  test('borrow the book which is borrowing by self', () => {
+    return fetch('https://localhost/api/borrow', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + adminToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({uid: testData.uid, bid: borrowingBidList[0].bid}), // borrow the same book
+      body: JSON.stringify({uid: testData.uid, bid: borrowingBidListBySelf[0].bid}), // borrow the same book
       agent
     })
     .then(res => res.json())
     .then(res => {
-      console.log(res)
+      expect(res.message).toBe('重复借书')
       return Promise.all([
-        knex.select('total_number', 'now_number').from('book').where('bid', borrowingBidList[0].bid),
+        knex.select('total_number', 'now_number').from('book').where('bid', borrowingBidListBySelf[0].bid),
         knex.select().from('borrowing').where('uid', testData.uid),
         knex.select().from('history').where('uid', testData.uid)
       ])
     })
-    .then(resList => {
-      console.log('book: ', resList[0])
-      console.log('borrowing: ', resList[1])
-      console.log('history: ', resList[2])
+    .then(([[book], borrowingList, historyList]) => {
+      expect(book.now_number).toBe(0)
+      expect(borrowingList.length).toBe(1)
+      expect(historyList.length).toBe(1)
+    })
+  })
+
+  test('borrowing book which now number is zero', () => {
+    return fetch('https://localhost/api/borrow', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: borrowingBidListByOthers[0].bid}),
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('本书已借完')
+      return Promise.all([
+        knex.select('total_number', 'now_number').from('book').where('bid', borrowingBidListByOthers[0].bid),
+        knex.select().from('borrowing').where('uid', testData.uid),
+        knex.select().from('history').where('uid', testData.uid)
+      ])
+    })
+    .then(([[book], borrowingList, historyList]) => {
+      expect(book.now_number).toBe(0)
+      expect(borrowingList.length).toBe(1)
+      expect(historyList.length).toBe(1)
+    })
+  })
+
+  test('borrowing book', () => {
+    return fetch('https://localhost/api/borrow', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: canBeBorrowedBidList[0].bid}),
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('借阅成功')
+      return Promise.all([
+        knex.select('total_number', 'now_number').from('book').where('bid', canBeBorrowedBidList[0].bid),
+        knex.select().from('borrowing').where('uid', testData.uid),
+        knex.select().from('history').where('uid', testData.uid)
+      ])
+    })
+    .then(([[book], borrowingList, historyList]) => {
+      expect(book.now_number).toBe(0)
+      expect(borrowingList.length).toBe(2)
+      expect(historyList.length).toBe(2)
+    })
+  })
+
+  test('borrow another book(over the borrowing number limit)', () => {
+    return fetch('https://localhost/api/borrow', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: canBeBorrowedBidList[1].bid}),
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('借书量超过规定')
+      return Promise.all([
+        knex.select('total_number', 'now_number').from('book').where('bid', canBeBorrowedBidList[1].bid),
+        knex.select().from('borrowing').where('uid', testData.uid),
+        knex.select().from('history').where('uid', testData.uid)
+      ])
+    })
+    .then(([[book], borrowingList, historyList]) => {
+      expect(book.now_number).toBe(1)
+      expect(borrowingList.length).toBe(2)
+      expect(historyList.length).toBe(2)
     })
   })
 })
