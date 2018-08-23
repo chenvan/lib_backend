@@ -334,4 +334,62 @@ describe('test admin api', () => {
       expect(historyList.length).toBe(2)
     })
   })
+
+  test('return book that not borrow', () => {
+    return fetch('https://localhost/api/return', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: canBeBorrowedBidList[1].bid}),
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('没有借这本书')
+      return knex.select().from('borrowing').where('uid', testData.uid)
+    })
+    .then(borrowingList => {
+      expect(borrowingList.length).toBe(2)
+    })
+  })
+
+  test('return book', () => {
+    return fetch('https://localhost/api/return', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({uid: testData.uid, bid: canBeBorrowedBidList[0].bid}),
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res.message).toBe('还书成功')
+      return Promise.all([
+        knex.select('total_number', 'now_number').from('book').where('bid', canBeBorrowedBidList[0].bid),
+        knex.select().from('borrowing').where('uid', testData.uid),
+        knex.select('borrowing_number').from('user').where('uid', testData.uid)
+      ])
+    })
+    .then(([[book], borrowingList, [user]]) => {
+      expect(book.now_number).toBe(1)
+      expect(borrowingList.length).toBe(1)
+      expect(user.borrowing_number).toBe(1)
+    })
+  })
+
+  test('return outdated list', () => {
+    return fetch('https://localhost/api/outdated', {
+      headers: {'Authorization': 'Bearer ' + adminToken},
+      agent
+    })
+    .then(res => res.json())
+    .then(res => {
+      expect(res).toHaveProperty('outdatedList')
+      expect(res.outdatedList.length).toBeGreaterThan(0)
+    })
+  })
 })

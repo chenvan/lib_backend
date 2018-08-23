@@ -21,7 +21,8 @@ exports.seed = function(knex, Promise) {
         borrowingBookBidList.push(bidList[index])
         return {
           uid,
-          bid: bidList[index]
+          bid: bidList[index],
+          add_time: '2018-08-01'
         }
       })
 

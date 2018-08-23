@@ -34,14 +34,14 @@ exports.up = function(knex, Promise) {
     knex.schema.createTable('fav', function(table) {
       table.string('uid').notNullable().references('uid').inTable('user').onDelete('CASCADE')
       table.integer('bid').unsigned().notNullable().references('bid').inTable('book').onDelete('CASCADE')
-      table.dateTime('add_time').notNullable().defaultTo(knex.raw('now()'))
+      table.date('add_time').notNullable().defaultTo(knex.raw('now()'))
       table.unique(['uid', 'bid'])
     }),
     
     knex.schema.createTable('history', function(table) {
       table.string('uid').notNullable().references('uid').inTable('user').onDelete('CASCADE')
       table.integer('bid').unsigned().notNullable().references('bid').inTable('book').onDelete('CASCADE')
-      table.dateTime('add_time').notNullable().defaultTo(knex.raw('now()'))
+      table.date('add_time').notNullable().defaultTo(knex.raw('now()'))
       // table.unique(['uid', 'bid'])
       // how to avoid duplicate the record in the same time??
     }),
@@ -49,7 +49,7 @@ exports.up = function(knex, Promise) {
     knex.schema.createTable('borrowing', function(table) {
       table.string('uid').notNullable().references('uid').inTable('user').onDelete('CASCADE')
       table.integer('bid').unsigned().notNullable().references('bid').inTable('book').onDelete('CASCADE')
-      table.dateTime('add_time').notNullable().defaultTo(knex.raw('now()'))
+      table.date('add_time').notNullable().defaultTo(knex.raw('now()'))
       table.unique(['uid', 'bid'])
     })
   ])

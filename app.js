@@ -178,7 +178,12 @@ app.use(async (ctx, next) => {
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/return/)) {
-
+    if (!ctx.state.jwtdata.isAdmin) ctx.throw(400, '非管理员') // the status is not correct
+    await db.returnBook(ctx.request.body.uid, ctx.request.body.bid)
+    ctx.body = {
+      message: '还书成功'
+    }
+    ctx.status = 200
   } else {
     await next()
   }
@@ -186,7 +191,12 @@ app.use(async (ctx, next) => {
 
 app.use(async (ctx, next) => {
   if (ctx.url.match(/^\/api\/outdated/)) {
-
+    if (!ctx.state.jwtdata.isAdmin) ctx.throw(400, '非管理员') // the status is not correct
+    let outdatedList = await db.getOutdatedList()
+    ctx.body = {
+      outdatedList
+    }
+    ctx.status = 200
   } else {
     await next()
   }

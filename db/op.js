@@ -96,19 +96,58 @@ function borrowBook (uid ,bid) {
         .into('history')
     ])
   })
-    .catch(err => {
-      if (err.message.includes('borrowing_uid_bid_unique')) {
-        throw Error('重复借书')
-      } else if(err.message.includes('valid_now_number_and_total_number')) {
-        throw Error('本书已借完')
-      } else if(err.message.includes('valid_borrowing_number')) {
-        throw Error('借书量超过规定')
-      }else {
-        throw err
-      }
-    })
+  .catch(err => {
+    if (err.message.includes('borrowing_uid_bid_unique')) {
+      throw Error('重复借书')
+    } else if(err.message.includes('valid_now_number_and_total_number')) {
+      throw Error('本书已借完')
+    } else if(err.message.includes('valid_borrowing_number')) {
+      throw Error('借书量超过规定')
+    }else {
+      throw err
+    }
+  })
 }
 
+function returnBook(uid, bid) {
+  return knex.transaction(trx => {
+    return Promise.all([
+      trx
+        .where('uid', uid).andWhere('bid', bid)
+        .del()
+        .into('borrowing')
+        .then(delNum => {
+          if (delNum === 0) throw Error('没有借这本书')
+        }),
+      trx
+        .where('bid', bid)
+        .increment('now_number', 1)
+        .into('book'),
+      trx
+        .where('uid', uid)
+        .decrement('borrowing_number', 1)
+        .into('user')
+    ])
+  })
+  .catch(err => {
+    if (err.message.includes('valid_now_number_and_total_number')) {
+      throw Error('书的库存出错')
+    } else if (err.message.includes('valid_borrowing_number')) {
+      throw Error('借书额度出错')
+    } else {
+      throw err
+    }
+  })
+}
+
+function getOutdatedList() {
+  return knex('borrowing')
+    .innerJoin('user', 'borrowing.uid', 'user.uid')
+    .innerJoin('book', 'borrowing.bid', 'book.bid')
+    .select()
+    .whereRaw('now() - borrowing.add_time > INTERVAL \'10 days\'')
+    .orderBy('borrowing.uid')
+}
 
 module.exports = {
   search,
@@ -118,5 +157,7 @@ module.exports = {
   searchType,
   changepwd,
   addToFav,
-  borrowBook
+  borrowBook,
+  returnBook,
+  getOutdatedList
 }
