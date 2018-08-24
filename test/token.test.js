@@ -25,8 +25,9 @@ test('visit protected link without token', () => {
   return fetch('https://localhost/api/test/2', {agent})
     .then(res => res.json())
     .then(res => {
-      expect(res.message).toBe('Authentication Error')
+       expect(res.message).toBe('Authentication Error')
     })
+
 })
 
 test('visit protected link with token', () => {

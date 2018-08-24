@@ -50,7 +50,7 @@ afterAll(() => {
 
 describe('test general api', () => {
   test('get user favorite list', () => {
-    return fetch('https://localhost/api/fav', {
+    return fetch('https://localhost/api/user/fav', {
       headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
@@ -62,7 +62,7 @@ describe('test general api', () => {
   })
   
   test('get user history list', () => {
-    return fetch('https://localhost/api/history', {
+    return fetch('https://localhost/api/user/history', {
       headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
@@ -74,7 +74,7 @@ describe('test general api', () => {
   })
   
   test('get user borrowing list', () => {
-    return fetch('https://localhost/api/borrowing', {
+    return fetch('https://localhost/api/user/borrowing', {
       headers: {'Authorization': 'Bearer ' + userToken},
       agent
     })
@@ -96,15 +96,15 @@ describe('test general api', () => {
         expect(res.typeList.length).toBeGreaterThan(0)
       })
   })
-  
-  test('search book by info', () => {
-    return fetch('https://localhost/api/search', {
+
+  test('search book by type', () => {
+    return fetch('https://localhost/api/type', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({info: ['紫金陈', '无证之罪']}),
+      body: JSON.stringify({type: '小说'}),
       agent
     })
       .then(res => res.json())
@@ -114,14 +114,14 @@ describe('test general api', () => {
       })
   })
   
-  test('search book by type', () => {
-    return fetch('https://localhost/api/searchtype', {
+  test('search book by info', () => {
+    return fetch('https://localhost/api/search', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({type: '小说'}),
+      body: JSON.stringify({info: ['紫金陈', '无证之罪']}),
       agent
     })
       .then(res => res.json())
