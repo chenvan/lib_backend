@@ -44,11 +44,11 @@ function getUserInfo(tableName, uid) {
     .where('uid', uid)
 }
 
-function getType() {
+function getTypeList() {
   return knex.select('type').table('book').groupBy('type')
 }
 
-function searchType (type, lastBid = -1) { 
+function searchByType (type, lastBid = -1) { 
   return knex.select().table('book')
     .where('type', type)
     .andWhere('bid', '>', lastBid)
@@ -153,8 +153,8 @@ module.exports = {
   search,
   verifyUser,
   getUserInfo,
-  getType,
-  searchType,
+  getTypeList,
+  searchByType,
   changepwd,
   addToFav,
   borrowBook,

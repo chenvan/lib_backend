@@ -11,6 +11,9 @@ module.exports = {
       database: knexSetting.development.database,
       user:     knexSetting.development.user,
       password: knexSetting.development.password
+    },
+    seeds: {
+      directory: './seeds/dev'
     }
   },
 
@@ -22,6 +25,9 @@ module.exports = {
       database: knexSetting.development.database,
       user:     knexSetting.development.user,
       password: knexSetting.development.password
+    },
+    seeds: {
+      directory: './seeds/test'
     }
   },
 

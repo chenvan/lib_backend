@@ -15,7 +15,7 @@ knex.setting.json
 # book: [{isbn, title, author, cover_url, summary, type, total_number, now_number}, ...]
 # user: [{uid, name, password}, ...]
 # admin: {uid, name, password}
-seeds/data.json
+seeds/test/data.json
 # function to verify if user is admin 
 helper/isAdmin.js
 
