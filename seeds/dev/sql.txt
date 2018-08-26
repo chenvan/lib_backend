@@ -1,0 +1,68 @@
+-- test in sql shell
+-- get borrowing
+EXPLAIN ANALYZE 
+SELECT book.bid, title, author, cover_url, summary, type, now_number, add_time
+FROM borrowing INNER JOIN book ON borrowing.bid = book.bid
+WHERE uid = '2'
+ORDER BY add_time DESC
+LIMIT 50;
+
+-- get fav
+-- dose add_time column needs index 
+EXPLAIN ANALYZE
+SELECT book.bid, title, author, cover_url, summary, type, now_number
+FROM fav INNER JOIN book ON fav.bid = book.bid 
+WHERE uid = '1'
+ORDER BY add_time DESC
+LIMIT 50;
+
+-- get history
+-- dose add_time column needs index 
+EXPLAIN ANALYZE 
+SELECT book.bid, title, author, cover_url, summary, type, now_number 
+FROM history INNER JOIN book ON history.bid = book.bid 
+WHERE uid = '10'
+ORDER BY add_time DESC
+LIMIT 50;
+
+-- get type
+EXPLAIN ANALYZE 
+SELECT type
+FROM book
+GROUP BY type
+ORDER BY type;
+
+-- search by type
+EXPLAIN ANALYZE
+SELECT bid, title, author, cover_url, summary, book.type, now_number
+FROM book
+WHERE type = '1' AND bid > 1000
+ORDER BY bid
+LIMIT 25 OFFSET 0;
+
+-- search by info
+
+-- array info
+EXPLAIN ANALYZE
+SELECT bid, title, author, cover_url, summary, book.type, now_number, pgroonga_score(tableoid, ctid) AS score
+FROM book
+WHERE ARRAY[title, author] &@~ ('10 OR 20', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
+ORDER BY score DESC
+LIMIT 25 OFFSET 0;
+
+-- string info
+EXPLAIN ANALYZE
+SELECT bid, title, author, cover_url, summary, book.type, now_number, pgroonga_score(tableoid, ctid) AS score
+FROM book
+WHERE ARRAY[title, author] &@ ('10', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
+ORDER BY score DESC
+LIMIT 25 OFFSET 0;
+
+-- get outdated list
+EXPLAIN ANALYZE
+SELECT "user".name, book.title, book.author, book.cover_url, book.summary, book.type
+FROM borrowing
+INNER JOIN "user" ON borrowing.uid = "user".uid
+INNER JOIN book ON borrowing.bid = book.bid
+WHERE now() - borrowing.add_time > INTERVAL '10 s'
+ORDER BY borrowing.uid;

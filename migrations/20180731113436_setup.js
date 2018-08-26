@@ -39,7 +39,7 @@ exports.up = function(knex, Promise) {
     }),
     
     knex.schema.createTable('history', function(table) {
-      table.string('uid').notNullable().references('uid').inTable('user').onDelete('CASCADE')
+      table.string('uid').index().notNullable().references('uid').inTable('user').onDelete('CASCADE')
       table.integer('bid').unsigned().notNullable().references('bid').inTable('book').onDelete('CASCADE')
       table.date('add_time').notNullable().defaultTo(knex.raw('now()'))
       // table.unique(['uid', 'bid'])
