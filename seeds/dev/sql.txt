@@ -1,7 +1,7 @@
 -- test in sql shell
 -- get borrowing
 EXPLAIN ANALYZE 
-SELECT book.bid, title, author, cover_url, summary, type, now_number, add_time
+SELECT book.bid, title, author, cover_url, summary, book.type, now_number, add_time
 FROM borrowing INNER JOIN book ON borrowing.bid = book.bid
 WHERE uid = '2'
 ORDER BY add_time DESC
@@ -10,7 +10,7 @@ LIMIT 50;
 -- get fav
 -- dose add_time column needs index 
 EXPLAIN ANALYZE
-SELECT book.bid, title, author, cover_url, summary, type, now_number
+SELECT book.bid, title, author, cover_url, summary, book.type, now_number, add_time
 FROM fav INNER JOIN book ON fav.bid = book.bid 
 WHERE uid = '1'
 ORDER BY add_time DESC
@@ -19,7 +19,7 @@ LIMIT 50;
 -- get history
 -- dose add_time column needs index 
 EXPLAIN ANALYZE 
-SELECT book.bid, title, author, cover_url, summary, type, now_number 
+SELECT book.bid, title, author, cover_url, summary, book.type, now_number, add_time 
 FROM history INNER JOIN book ON history.bid = book.bid 
 WHERE uid = '10'
 ORDER BY add_time DESC
@@ -60,7 +60,7 @@ LIMIT 25 OFFSET 0;
 
 -- get outdated list
 EXPLAIN ANALYZE
-SELECT "user".name, book.title, book.author, book.cover_url, book.summary, book.type
+SELECT "user".uid, "user".name, title, author, cover_url, summary, book.type
 FROM borrowing
 INNER JOIN "user" ON borrowing.uid = "user".uid
 INNER JOIN book ON borrowing.bid = book.bid

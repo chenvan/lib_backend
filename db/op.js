@@ -3,9 +3,9 @@ const bcrypt = require('bcrypt')
 
 const salt_rounds = 10
 
-function search (info) {
+function search (info, offset, limit = 50) {
   let op = Array.isArray(info) ? '&@~' : '&@'
-  return knex.select(knex.raw('*, pgroonga_score(tableoid, ctid) AS score')).table('book')
+  return knex.select(knex.raw('bid, title, author, cover_url, summary, book.type, pgroonga_score(tableoid, ctid) AS score')).table('book')
     .whereRaw(
       `ARRAY[title, author] ${op} (:searchInfo, ARRAY[1, 1], :indexName)::pgroonga_full_text_search_condition`,
       {
@@ -14,6 +14,7 @@ function search (info) {
       }
     )
     .orderBy('score', 'desc')
+    .limit(limit).offset(offset)
 }
 
 function verifyUser (uid, pwd) {
@@ -39,20 +40,25 @@ function verifyUser (uid, pwd) {
 }
 
 function getUserInfo(tableName, uid) {
-  return knex.select().table(tableName)
+  return knex.select('book.bid', 'title', 'author', 'cover_url', 'summary', 'book.type', 'now_number', 'add_time')
+    .table(tableName)
     .innerJoin('book', `${tableName}.bid`, 'book.bid')
     .where('uid', uid)
+    .orderBy('add_time', 'desc')
+    .limit(50)
 }
 
 function getTypeList() {
-  return knex.select('type').table('book').groupBy('type')
+  return knex.select('type').table('book').groupBy('type').orderBy('type')
 }
 
-function searchByType (type, lastBid = -1) { 
-  return knex.select().table('book')
+function searchByType (type, lastBid, offset, limit = 25) { 
+  return knex.select('bid', 'title', 'author', 'cover_url', 'summary', 'book.type')
+    .table('book')
     .where('type', type)
     .andWhere('bid', '>', lastBid)
     .orderBy('bid')
+    .limit(limit).offset(offset)
 }
 
 function changepwd (uid, oldpwd, newpwd) {
@@ -67,7 +73,9 @@ function changepwd (uid, oldpwd, newpwd) {
 }
 
 function addToFav (uid, bid) {
-  return knex('fav').insert({uid, bid})
+  return knex('fav')
+    .returning('bid')
+    .insert({uid, bid})
     .catch(err => {
       if (err.message.includes('fav_uid_bid_unique')) {
         throw Error('已收藏')
@@ -75,6 +83,13 @@ function addToFav (uid, bid) {
         throw err
       }
     })
+}
+
+function deleteFromFav(uid, bidList) {
+  return knex('fav')
+    .where('uid', uid).whereIn('bid', bidList)
+    .returning('bid')
+    .del()
 }
 
 function borrowBook (uid ,bid) {
@@ -144,7 +159,7 @@ function getOutdatedList() {
   return knex('borrowing')
     .innerJoin('user', 'borrowing.uid', 'user.uid')
     .innerJoin('book', 'borrowing.bid', 'book.bid')
-    .select()
+    .select('user.uid', 'user.name', 'title', 'author', 'cover_url', 'summary', 'book.type')
     .whereRaw('now() - borrowing.add_time > INTERVAL \'10 days\'')
     .orderBy('borrowing.uid')
 }
@@ -157,6 +172,7 @@ module.exports = {
   searchByType,
   changepwd,
   addToFav,
+  deleteFromFav,
   borrowBook,
   returnBook,
   getOutdatedList

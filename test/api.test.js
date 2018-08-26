@@ -104,7 +104,7 @@ describe('test general api', () => {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({type: '小说'}),
+      body: JSON.stringify({type: '小说', lastBid: 0, offset: 0}),
       agent
     })
       .then(res => res.json())
@@ -121,7 +121,7 @@ describe('test general api', () => {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({info: ['紫金陈', '无证之罪']}),
+      body: JSON.stringify({info: ['紫金陈', '无证之罪'], offset: 0}),
       agent
     })
       .then(res => res.json())
@@ -136,7 +136,7 @@ describe('test general api', () => {
       .then(bidList => {
         return Promise.all(
           bidList.map(item => {
-            return fetch('https://localhost/api/addtofav', {
+            return fetch('https://localhost/api/fav', {
               method: 'POST',
               headers: {
                 'Authorization': 'Bearer ' + userToken,
@@ -150,18 +150,46 @@ describe('test general api', () => {
         )
       })
       .then(resList => {
+        // 验证应该有问题, 先不管
         // 不重复收藏
         expect(
           resList.some(res => {
-            return res.message === "已收藏"
+            return res.message && res.message === "已收藏"
+          })
+        ).toBeTruthy
+        
+        expect(
+          resList.some(res => {
+            return res.addList && Array.isArray(res.addList)
           })
         ).toBeTruthy
 
-        expect(
-          resList.some(res => {
-            return res.message === "添加成功"
-          })
-        ).toBeTruthy
+        
+      })
+  })
+
+  test('delete book from fav', () => {
+    return knex.select('bid', 'uid').from('fav').where('uid', testData.uid)
+      .then(bidList => {
+        return fetch('https://localhost/api/fav', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + userToken,
+            'Content-Type': 'application/json'
+          },
+          // bidList change to an array contain bid, not an object which has property bid
+          body: JSON.stringify({bidList: bidList.map(item => item.bid)}), 
+          agent
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        expect(res).toHaveProperty('deleteList')
+        expect(res.deleteList.length).toBeGreaterThan(0)
+        return knex('fav').count().where('uid', testData.uid)
+      })
+      .then(res => {
+        expect(res[0].count).toBe('0')
       })
   })
   

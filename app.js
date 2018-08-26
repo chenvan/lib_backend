@@ -27,7 +27,7 @@ router
     try {
       await next()
     } catch (err) {
-      console.log('catch error:', err)
+      // console.log('catch error:', err)
       let message = err.message
       ctx.status = 401
       ctx.body = {message}
@@ -74,14 +74,14 @@ router
   })
   .post('/type', async ctx => {
     ctx.body = {
-      resultList: await db.searchByType(ctx.request.body.type, ctx.request.body.lastBid)
+      resultList: await db.searchByType(ctx.request.body.type, ctx.request.body.lastBid, ctx.request.body.offset)
     }
   })
 
 router
   .post('/search', async ctx => {
     ctx.body = {
-      resultList: await db.search(ctx.request.body.info)
+      resultList: await db.search(ctx.request.body.info, ctx.request.body.offset)
     }
   })
 
@@ -94,10 +94,14 @@ router
   })
 
 router
-  .post('/addtofav', async ctx => {
-    await db.addToFav(ctx.state.jwtdata.uid, ctx.request.body.bid)
+  .post('/fav', async ctx => {
     ctx.body = {
-      message: '添加成功'
+      addList: await db.addToFav(ctx.state.jwtdata.uid, ctx.request.body.bid)
+    }
+  })
+  .del('/fav', async ctx => {
+    ctx.body = {
+      deleteList: await db.deleteFromFav(ctx.state.jwtdata.uid, ctx.request.body.bidList)
     }
   })
 
