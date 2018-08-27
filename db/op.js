@@ -155,6 +155,7 @@ function returnBook(uid, bid) {
   })
 }
 
+// book can be borrowed 10 days 
 function getOutdatedList() {
   return knex('borrowing')
     .innerJoin('user', 'borrowing.uid', 'user.uid')
