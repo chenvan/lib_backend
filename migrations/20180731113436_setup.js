@@ -6,9 +6,11 @@ exports.up = function(knex, Promise) {
       table.string('name').notNullable()
       table.string('password').notNullable()
       table.integer('borrowing_number').defaultTo(0)
+      table.integer('fav_number').defaultTo(0)
     })
       // user 需要用双引号, 因为系统自带 user 表, 需要用双引号识别
       .raw('ALTER TABLE "user" ADD CONSTRAINT valid_borrowing_number CHECK (borrowing_number >= 0 AND borrowing_number <= 2)')
+      .raw('ALTER TABLE "user" ADD CONSTRAINT valid_fav_number CHECK (fav_number >= 0 AND fav_number <= 30)')
     ,
 
     knex.schema.createTable('book', function(table) {

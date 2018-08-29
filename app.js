@@ -95,13 +95,15 @@ router
 
 router
   .post('/fav', async ctx => {
+    await db.addToFav(ctx.state.jwtdata.uid, ctx.request.body.bid)
     ctx.body = {
-      addList: await db.addToFav(ctx.state.jwtdata.uid, ctx.request.body.bid)
+      message: '添加成功' 
     }
   })
   .del('/fav', async ctx => {
+    await db.deleteFromFav(ctx.state.jwtdata.uid, ctx.request.body.bidList)
     ctx.body = {
-      deleteList: await db.deleteFromFav(ctx.state.jwtdata.uid, ctx.request.body.bidList)
+      message: '删除成功'  
     }
   })
 

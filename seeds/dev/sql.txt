@@ -44,7 +44,7 @@ LIMIT 25 OFFSET 0;
 EXPLAIN ANALYZE
 SELECT bid, title, author, cover_url, summary, book.type, now_number, pgroonga_score(tableoid, ctid) AS score
 FROM book
-WHERE ARRAY[title, author] &@~ ('sql OR linux', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
+WHERE ARRAY[title, author] &@~ ('鸟 OR 福', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
 ORDER BY score DESC
 LIMIT 25 OFFSET 0;
 
@@ -52,7 +52,7 @@ LIMIT 25 OFFSET 0;
 EXPLAIN ANALYZE
 SELECT bid, title, author, cover_url, summary, book.type, now_number, pgroonga_score(tableoid, ctid) AS score
 FROM book
-WHERE ARRAY[title, author] &@ ('linux', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
+WHERE ARRAY[title, author] &@ ('必知', ARRAY[1, 1], 'pgroonga_title_and_author_index')::pgroonga_full_text_search_condition
 ORDER BY score DESC
 LIMIT 25 OFFSET 0;
 

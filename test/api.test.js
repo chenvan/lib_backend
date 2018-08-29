@@ -150,21 +150,17 @@ describe('test general api', () => {
         )
       })
       .then(resList => {
-        // 验证应该有问题, 先不管
-        // 不重复收藏
+        //console.log(resList)
         expect(
-          resList.some(res => {
-            return res.message && res.message === "已收藏"
-          })
-        ).toBeTruthy
-        
-        expect(
-          resList.some(res => {
-            return res.addList && Array.isArray(res.addList)
+          resList.every(res => {
+            return res.message && res.message === "收藏成功"
           })
         ).toBeTruthy
 
-        
+        return knex.select('fav_number').from('user').where('uid', testData.uid)
+      })
+      .then(res => {
+        expect(res[0].fav_number).toBe(5)
       })
   })
 
@@ -184,12 +180,15 @@ describe('test general api', () => {
       })
       .then(res => res.json())
       .then(res => {
-        expect(res).toHaveProperty('deleteList')
-        expect(res.deleteList.length).toBeGreaterThan(0)
-        return knex('fav').count().where('uid', testData.uid)
+        expect(res.message).toBe('删除成功')
+        return Promise.all([
+          knex('fav').count().where('uid', testData.uid),
+          knex.select('fav_number').from('user').where('uid', testData.uid)
+        ])
       })
-      .then(res => {
-        expect(res[0].count).toBe('0')
+      .then(resList => {
+        expect(resList[0][0].count).toBe('0')
+        expect(resList[1][0].fav_number).toBe(0)
       })
   })
   
@@ -349,14 +348,17 @@ describe('test admin api', () => {
     })
     .then(res => res.json())
     .then(res => {
-      expect(res.message).toBe('借书量超过规定')
+      // expect(res.message).toBe('借书量超过规定')
       return Promise.all([
         knex.select('total_number', 'now_number').from('book').where('bid', canBeBorrowedBidList[1].bid),
+        knex.select('borrowing_number').from('user').where('uid', testData.uid),
         knex.select().from('borrowing').where('uid', testData.uid),
         knex.select().from('history').where('uid', testData.uid)
       ])
     })
-    .then(([[book], borrowingList, historyList]) => {
+    .then(([[book], userList, borrowingList, historyList]) => {
+      // console.log(book, userList, borrowingList, historyList)
+      
       expect(book.now_number).toBe(1)
       expect(borrowingList.length).toBe(2)
       expect(historyList.length).toBe(2)
@@ -375,7 +377,7 @@ describe('test admin api', () => {
     })
     .then(res => res.json())
     .then(res => {
-      expect(res.message).toBe('没有借这本书')
+      expect(res.message).toBe('还书成功') // 改变了之前提示的 没有借这本书
       return knex.select().from('borrowing').where('uid', testData.uid)
     })
     .then(borrowingList => {

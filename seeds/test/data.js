@@ -17,12 +17,13 @@ exports.seed = function(knex, Promise) {
     .then(([bidList, uidList]) => {
       // the number of data.book > the number of data.user
       let borrowingBookBidList = []
+      let add_time = new Date(2018, 7, 1)
       let record = uidList.map((uid, index) => {
         borrowingBookBidList.push(bidList[index])
         return {
           uid,
           bid: bidList[index],
-          add_time: '2018-08-01'
+          add_time: add_time.toISOString()
         }
       })
 
@@ -42,7 +43,10 @@ exports.seed = function(knex, Promise) {
         .then(() => {
           return Promise.all(
             uidList.map(uid => {
-              return knex('user').where('uid', uid).increment('borrowing_number', 1)
+              return knex('user').where('uid', uid).update({
+                borrowing_number: knex.raw('borrowing_number + 1'),
+                fav_number: knex.raw('fav_number + 1')
+              })
             })
           )
         })

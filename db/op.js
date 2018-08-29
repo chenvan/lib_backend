@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 
 const salt_rounds = 10
 
-function search (info, offset, limit = 50) {
+function search (info, offset, limit = 30) {
   let op = Array.isArray(info) ? '&@~' : '&@'
   return knex.select(knex.raw('bid, title, author, cover_url, summary, book.type, pgroonga_score(tableoid, ctid) AS score')).table('book')
     .whereRaw(
@@ -45,7 +45,7 @@ function getUserInfo(tableName, uid) {
     .innerJoin('book', `${tableName}.bid`, 'book.bid')
     .where('uid', uid)
     .orderBy('add_time', 'desc')
-    .limit(50)
+    .limit(tableName === 'history' ? 50 : tableName === 'fav' ? 30 : 2)
 }
 
 function getTypeList() {
@@ -73,23 +73,49 @@ function changepwd (uid, oldpwd, newpwd) {
 }
 
 function addToFav (uid, bid) {
-  return knex('fav')
-    .returning('bid')
-    .insert({uid, bid})
+  return knex.transaction(trx => {
+    return Promise.all([
+      trx
+        .insert({uid, bid})
+        .into('fav'),
+      trx
+        .where('uid', uid)
+        .increment('fav_number', 1)
+        .into('user')
+    ])
     .catch(err => {
       if (err.message.includes('fav_uid_bid_unique')) {
-        throw Error('已收藏')
-      } else {
+        return knex('fav').where('uid', uid).andWhere('bid', bid)
+          .update({add_time: (new Date()).toISOString()})
+      } else if (err.message.includes('valid_fav_number')) {
+        throw Error('收藏数超过上限')
+      }  else {
         throw err
       }
     })
+  })
 }
 
 function deleteFromFav(uid, bidList) {
-  return knex('fav')
-    .where('uid', uid).whereIn('bid', bidList)
-    .returning('bid')
-    .del()
+  return knex.transaction(trx => {
+      return trx
+        .where('uid', uid).whereIn('bid', bidList)
+        .del()
+        .into('fav')
+        .then(delNum => {
+          return trx
+            .where('uid', uid)
+            .decrement('fav_number', delNum)
+            .into('user')
+        })
+  })
+  .catch(err => {
+    if (err.message.includes(valid_fav_number)) {
+      throw Error('收藏数量出现问题')
+    } else {
+      throw err
+    }
+  })
 }
 
 function borrowBook (uid ,bid) {
@@ -126,23 +152,22 @@ function borrowBook (uid ,bid) {
 
 function returnBook(uid, bid) {
   return knex.transaction(trx => {
-    return Promise.all([
-      trx
-        .where('uid', uid).andWhere('bid', bid)
-        .del()
-        .into('borrowing')
-        .then(delNum => {
-          if (delNum === 0) throw Error('没有借这本书')
-        }),
-      trx
-        .where('bid', bid)
-        .increment('now_number', 1)
-        .into('book'),
-      trx
-        .where('uid', uid)
-        .decrement('borrowing_number', 1)
-        .into('user')
-    ])
+    return trx
+      .where('uid', uid).andWhere('bid', bid)
+      .del()
+      .into('borrowing')
+      .then(delNum => {
+        return Promise.all([
+          trx
+            .where('bid', bid)
+            .increment('now_number', delNum)
+            .into('book'),
+          trx
+            .where('uid', uid)
+            .decrement('borrowing_number', delNum)
+            .into('user')
+        ])
+      })
   })
   .catch(err => {
     if (err.message.includes('valid_now_number_and_total_number')) {
@@ -155,13 +180,13 @@ function returnBook(uid, bid) {
   })
 }
 
-// book can be borrowed 10 days 
+// book can be borrowed 15 days 
 function getOutdatedList() {
   return knex('borrowing')
     .innerJoin('user', 'borrowing.uid', 'user.uid')
     .innerJoin('book', 'borrowing.bid', 'book.bid')
     .select('user.uid', 'user.name', 'title', 'author', 'cover_url', 'summary', 'book.type')
-    .whereRaw('now() - borrowing.add_time > INTERVAL \'10 days\'')
+    .whereRaw('now() - borrowing.add_time > INTERVAL \'15 days\'')
     .orderBy('borrowing.uid')
 }
 
