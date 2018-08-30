@@ -8,6 +8,7 @@ const enforceHttps = require('koa-sslify')
 const bodyParser = require('koa-bodyparser')
 const jwt = require('jsonwebtoken')
 const koaJwt = require('koa-jwt')
+const serve = require('koa-static')
 
 const db = require('./db/op')
 const isAdmin = require('./helper/isAdmin')
@@ -21,6 +22,7 @@ const router = new Router({
 
 app.use(enforceHttps())
 app.use(bodyParser())
+app.use(serve('./validation', {hidden: true}))
 
 router
   .use(async (ctx, next) => {
@@ -74,7 +76,7 @@ router
   })
   .post('/type', async ctx => {
     ctx.body = {
-      resultList: await db.searchByType(ctx.request.body.type, ctx.request.body.lastBid, ctx.request.body.offset)
+      resultList: await db.searchByType(ctx.request.body.type, ctx.request.body.lastBid)
     }
   })
 
@@ -137,7 +139,10 @@ app
   .use(router.routes())
   .use(router.allowedMethods())
 
-const options = {
+const options = app.env === 'production' ? {
+  key: fs.readFileSync('./214356235960473.key'),
+  cert: fs.readFileSync('./214356235960473.pem')
+} : {
   key: fs.readFileSync('./ssl/server.key'),
   cert: fs.readFileSync('./ssl/server.crt'),
   requestCert: false,

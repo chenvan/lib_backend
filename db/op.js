@@ -39,26 +39,26 @@ function verifyUser (uid, pwd) {
     })
 }
 
-function getUserInfo(tableName, uid) {
+function getUserInfo(tableName, uid, limit = 50) {
   return knex.select('book.bid', 'title', 'author', 'cover_url', 'summary', 'book.type', 'now_number', 'add_time')
     .table(tableName)
     .innerJoin('book', `${tableName}.bid`, 'book.bid')
     .where('uid', uid)
     .orderBy('add_time', 'desc')
-    .limit(tableName === 'history' ? 50 : tableName === 'fav' ? 30 : 2)
+    .limit(limit)
 }
 
 function getTypeList() {
   return knex.select('type').table('book').groupBy('type').orderBy('type')
 }
 
-function searchByType (type, lastBid, offset, limit = 25) { 
+function searchByType (type, lastBid, limit = 25) { 
   return knex.select('bid', 'title', 'author', 'cover_url', 'summary', 'book.type')
     .table('book')
     .where('type', type)
     .andWhere('bid', '>', lastBid)
     .orderBy('bid')
-    .limit(limit).offset(offset)
+    .limit(limit)
 }
 
 function changepwd (uid, oldpwd, newpwd) {

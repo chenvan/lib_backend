@@ -13,6 +13,7 @@
     "koa-jwt": "^3.3.2",
     "koa-router": "^7.4.0",
     "koa-sslify": "^2.1.2",
+    "koa-static": "^5.0.0",
     "node-fetch": "^2.1.2",
     "pg": "^7.4.3"
   },

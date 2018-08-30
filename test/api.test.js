@@ -104,7 +104,7 @@ describe('test general api', () => {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({type: '小说', lastBid: 0, offset: 0}),
+      body: JSON.stringify({type: '小说', lastBid: 0}),
       agent
     })
       .then(res => res.json())

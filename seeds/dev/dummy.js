@@ -1,6 +1,7 @@
 
 let userNumer  = 3000
 let bookBorrowedNumber = userNumer * 2
+let favLimit = 30
 let titleList = [
   'SQL必知必会',
   'The Practice of Programming',
@@ -51,7 +52,8 @@ function genUsers (knex) {
       uid: uid.toString(),
       name: uid.toString(),
       password: '000000',
-      borrowing_number: 2
+      borrowing_number: 2,
+      fav_number: 30
     })
   }
   return knex.batchInsert('user', result, userNumer)
@@ -116,7 +118,7 @@ function genHisRecord (knex) {
 }
 
 function genFavRecord (knex) {
-  return knex.select('bid').table('book').limit(100)
+  return knex.select('bid').table('book').limit(favLimit)
     .then(res => {
       let promiseArray = []
       for (let uid = 1; uid <= userNumer; uid++) {
@@ -129,7 +131,7 @@ function genFavRecord (knex) {
         })
 
         promiseArray.push(
-          knex.batchInsert('fav', result, 100)
+          knex.batchInsert('fav', result, favLimit)
         )
       }
       return Promise.all(promiseArray)

@@ -18,5 +18,6 @@ helper/isAdmin.js
 
 
 ## 安装
+- 在 centos 上 postgresql 的安装 & 设定: [链接](https://www.linode.com/docs/databases/postgresql/how-to-install-postgresql-relational-databases-on-centos-7/)
 - 安装 PGroonga: [链接](https://pgroonga.github.io/install/)
 - 安装 node-gyp: [链接](https://github.com/nodejs/node-gyp)
