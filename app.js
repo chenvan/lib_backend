@@ -47,7 +47,9 @@ router
   .post('/login', async ctx => {
     let user = await db.verifyUser(ctx.request.body.uid, ctx.request.body.pwd)
     ctx.body = {
-      user,
+      uid: user.uid,
+      name: user.name,
+      isAdmin: isAdmin(user.uid),
       token: jwt.sign({uid: user.uid, isAdmin: isAdmin(user.uid)}, libSetting.secret, {expiresIn: '1h'})
     }
   })
