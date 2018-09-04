@@ -39,7 +39,9 @@ module.exports = {
       database: knexSetting.production.database,
       user:     knexSetting.production.user,
       password: knexSetting.production.password
+    },
+    seeds: {
+      directory: './seeds/test'
     }
   }
-
 };
