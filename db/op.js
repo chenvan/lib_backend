@@ -190,6 +190,10 @@ function getOutdatedList() {
     .orderBy('borrowing.uid')
 }
 
+function getBookInfo(bid) {
+  return knex.select().table('book').where('bid', bid)
+}
+
 module.exports = {
   search,
   verifyUser,
@@ -201,5 +205,6 @@ module.exports = {
   deleteFromFav,
   borrowBook,
   returnBook,
-  getOutdatedList
+  getOutdatedList,
+  getBookInfo,
 }

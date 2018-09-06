@@ -83,6 +83,13 @@ router
   })
 
 router
+  .get('/book/:bid', async ctx => {
+    ctx.body = {
+      bookInfo: await db.getBookInfo(ctx.params.bid)
+    }
+  })
+
+router
   .post('/search', async ctx => {
     ctx.body = {
       resultList: await db.search(ctx.request.body.info, ctx.request.body.offset)
