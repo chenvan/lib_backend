@@ -17,13 +17,12 @@ exports.seed = function(knex, Promise) {
     .then(([bidList, uidList]) => {
       // the number of data.book > the number of data.user
       let borrowingBookBidList = []
-      let add_time = new Date(2018, 7, 1)
       let record = uidList.map((uid, index) => {
         borrowingBookBidList.push(bidList[index])
         return {
           uid,
           bid: bidList[index],
-          add_time: add_time.toISOString()
+          add_time: '2018-08-01'
         }
       })
 
