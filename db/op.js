@@ -40,7 +40,7 @@ function verifyUser (uid, pwd) {
 }
 
 function getUserInfo(tableName, uid, limit = 50) {
-  return knex.select('book.bid', 'title', 'author', 'cover_url', 'summary', 'book.type', 'now_number', 'add_time')
+  return knex.select('book.bid', 'title', 'author', 'cover_url', 'book.type', 'now_number')
     .table(tableName)
     .innerJoin('book', `${tableName}.bid`, 'book.bid')
     .where('uid', uid)
@@ -86,7 +86,7 @@ function addToFav (uid, bid) {
     .catch(err => {
       if (err.message.includes('fav_uid_bid_unique')) {
         return knex('fav').where('uid', uid).andWhere('bid', bid)
-          .update({add_time: (new Date()).toISOString()})
+          .update({add_time: (new Date()).toISOString()}) // the add_time has time presicion lost problem
       } else if (err.message.includes('valid_fav_number')) {
         throw Error('收藏数超过上限')
       }  else {
