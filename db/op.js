@@ -98,7 +98,7 @@ function addToFav (uid, bid) {
     .catch(err => {
       if (err.message.includes('fav_uid_bid_unique')) {
         return knex('fav').where('uid', uid).andWhere('bid', bid)
-          .update({add_time: (new Date()).toISOString()}) // the add_time has time presicion lost problem
+          .update({add_time: new Date()}) // the add_time has time presicion lost problem
       } else if (err.message.includes('valid_fav_number')) {
         throw Error('收藏数超过上限')
       }  else {
