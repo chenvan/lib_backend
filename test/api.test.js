@@ -38,6 +38,7 @@ beforeAll(() => {
     .then(resList => {
       userToken = resList[0].token
       adminToken = resList[1].token
+      // console.log(resList[1])
     })
 })
 
@@ -104,7 +105,7 @@ describe('test general api', () => {
         'Authorization': 'Bearer ' + userToken,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({type: '小说', lastBid: 0}),
+      body: JSON.stringify({type: '小说'}),
       agent
     })
       .then(res => res.json())
@@ -113,7 +114,25 @@ describe('test general api', () => {
         expect(res.resultList.length).toBeGreaterThan(0)
       })
   })
-  
+
+  test('search book by type "所有图书"', () => {
+    return fetch('https://localhost/api/type', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + userToken,
+        'Content-Type': 'application/json'
+      },
+      agent
+    })
+      .then(res => res.json())
+      .then(res => {
+        // console.log(res.resultList)
+        expect(res).toHaveProperty('resultList')
+        expect(res.resultList.length).toBeGreaterThan(0)
+      })
+  })
+
+
   test('search book by info', () => {
     return fetch('https://localhost/api/search', {
       method: 'POST',
@@ -128,6 +147,24 @@ describe('test general api', () => {
       .then(res => {
         expect(res).toHaveProperty('resultList')
         expect(res.resultList.length).toBeGreaterThan(0)
+      })
+  })
+
+  test('search book by info with type', () => {
+    return fetch('https://localhost/api/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + userToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({info: ['紫金陈', '无证之罪'], type: '写真', offset: 0}),
+      agent
+    })
+      .then(res => res.json())
+      .then(res => {
+        // console.log(res.resultList)
+        expect(res).toHaveProperty('resultList')
+        expect(res.resultList.length).toBe(0)
       })
   })
   
@@ -228,7 +265,9 @@ describe('test general api', () => {
     .then(res => res.json())
     .then(res => {
       expect(res).toHaveProperty('token')
-      expect(res).toHaveProperty('user')
+      expect(res).toHaveProperty('name')
+      expect(res).toHaveProperty('uid')
+      expect(res).toHaveProperty('isAdmin')
     })
   })
 })

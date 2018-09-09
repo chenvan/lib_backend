@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 
 const salt_rounds = 10
 
-function search (info, offset, limit = 30) {
+function search (info, type, offset, limit = 30) {
   let op = Array.isArray(info) ? '&@~' : '&@'
   return knex.select(knex.raw('bid, title, author, cover_url, summary, book.type, pgroonga_score(tableoid, ctid) AS score')).table('book')
     .whereRaw(
@@ -13,6 +13,11 @@ function search (info, offset, limit = 30) {
         indexName: 'pgroonga_title_and_author_index'
       }
     )
+    .where(builder => {
+      if (type) {
+        builder.where('type', type)
+      }
+    })
     .orderBy('score', 'desc')
     .limit(limit).offset(offset)
 }
@@ -55,8 +60,15 @@ function getTypeList() {
 function searchByType (type, lastBid, limit = 25) { 
   return knex.select('bid', 'title', 'author', 'cover_url', 'summary', 'book.type')
     .table('book')
-    .where('type', type)
-    .andWhere('bid', '>', lastBid)
+    .where(builder => {
+      if (type) {
+        builder.where('type', type)
+      }
+
+      if (lastBid) {
+        builder.andWhere('bid', '>', lastBid)
+      }
+    })
     .orderBy('bid')
     .limit(limit)
 }

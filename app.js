@@ -92,7 +92,7 @@ router
 router
   .post('/search', async ctx => {
     ctx.body = {
-      resultList: await db.search(ctx.request.body.info, ctx.request.body.offset)
+      resultList: await db.search(ctx.request.body.info, ctx.request.body.type, ctx.request.body.offset)
     }
   })
 
