@@ -45,7 +45,7 @@ function verifyUser (uid, pwd) {
 }
 
 function getUserInfo(tableName, uid, limit = 50) {
-  return knex.select('book.bid', 'title', 'author', 'cover_url', 'book.type', 'now_number')
+  return knex.select('book.bid', 'title', 'author', 'cover_url', 'book.type', 'now_number', 'add_time')
     .table(tableName)
     .innerJoin('book', `${tableName}.bid`, 'book.bid')
     .where('uid', uid)
