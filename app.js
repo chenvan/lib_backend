@@ -137,10 +137,10 @@ router
   })
 
 router
-  .get('/outdated', async ctx => {
+  .post('/outdated', async ctx => {
     if (!ctx.state.jwtdata.isAdmin) ctx.throw(400, '非管理员') // the status is not correct
     ctx.body = {
-      outdatedList: await db.getOutdatedList()
+      outdatedList: await db.getOutdatedList(ctx.request.body.days)
     }
   })
 

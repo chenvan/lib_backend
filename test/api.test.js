@@ -452,11 +452,17 @@ describe('test admin api', () => {
 
   test('return outdated list', () => {
     return fetch('https://localhost/api/outdated', {
-      headers: {'Authorization': 'Bearer ' + adminToken},
+      headers: {
+        'Authorization': 'Bearer ' + adminToken,
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({days: 15}),
       agent
     })
     .then(res => res.json())
     .then(res => {
+      // console.log(res)
       expect(res).toHaveProperty('outdatedList')
       expect(res.outdatedList.length).toBeGreaterThan(0)
     })

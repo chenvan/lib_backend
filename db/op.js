@@ -192,13 +192,12 @@ function returnBook(uid, bid) {
   })
 }
 
-// book can be borrowed 15 days 
-function getOutdatedList() {
+function getOutdatedList(days) {
   return knex('borrowing')
     .innerJoin('user', 'borrowing.uid', 'user.uid')
     .innerJoin('book', 'borrowing.bid', 'book.bid')
-    .select('user.uid', 'user.name', 'title', 'author', 'cover_url', 'summary', 'book.type')
-    .whereRaw('now() - borrowing.add_time > INTERVAL \'15 days\'')
+    .select('user.uid', 'user.name', 'title', 'author', 'cover_url', 'book.type')
+    .whereRaw(`now() - borrowing.add_time > INTERVAL '${days} days'`)
     .orderBy('borrowing.uid')
 }
 
