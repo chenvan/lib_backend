@@ -15,7 +15,8 @@
     "koa-sslify": "^2.1.2",
     "koa-static": "^5.0.0",
     "node-fetch": "^2.1.2",
-    "pg": "^7.4.3"
+    "pg": "^7.4.3",
+    "string-similarity": "^1.2.2"
   },
   "description": "tobacco library backend",
   "repository": "https://github.com/chenvan/lib_backend.git",

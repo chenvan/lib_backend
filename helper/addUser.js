@@ -12,7 +12,7 @@ const rl = readline.createInterface({
 })
 
 rl.on('line', line => {
-  let [uid, name] = line.split(/\s*;\s*/)
+  let [uid, name] = line.split(/\s+/)
   promiseArray.push(
     bcrypt.hash(uid, salt_rounds)
       .then(hash_pwd => {

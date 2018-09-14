@@ -21,6 +21,7 @@ exports.up = function(knex, Promise) {
       table.text('author')
       table.text('cover_url')
       table.text('summary')
+      table.text('owner')
       // type column maybe should use enum
       table.string('type').notNullable()
       table.integer('total_number').notNullable()

@@ -31,7 +31,7 @@ router
     } catch (err) {
       // console.log('catch error:', err)
       let message = err.message
-      ctx.status = 401
+      ctx.status = 400
       ctx.body = {message}
     }
   })
