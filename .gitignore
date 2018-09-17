@@ -12,7 +12,7 @@ library.setting.json
 # development : { database, user, password }
 # production : {database, user, password }
 knex.setting.json
-# book: [{isbn, title, author, cover_url, summary, type, total_number, now_number}, ...]
+# book: [{isbn, title, author, cover_url, summary, type, total_number, now_number, owner}, ...]
 # user: [{uid, name, password}, ...]
 # admin: {uid, name, password}
 seeds/test/data.json

@@ -50,7 +50,7 @@ router
       uid: user.uid,
       name: user.name,
       isAdmin: isAdmin(user.uid),
-      token: jwt.sign({uid: user.uid, isAdmin: isAdmin(user.uid)}, libSetting.secret, {expiresIn: '1h'})
+      token: jwt.sign({uid: user.uid, isAdmin: isAdmin(user.uid)}, libSetting.secret, {expiresIn: '3d'})
     }
   })
 
@@ -149,8 +149,8 @@ app
   .use(router.allowedMethods())
 
 const options = app.env === 'production' ? {
-  key: fs.readFileSync('./214356235960473.key'),
-  cert: fs.readFileSync('./214356235960473.pem')
+  key: fs.readFileSync('./2.key'),
+  cert: fs.readFileSync('./1.crt')
 } : {
   key: fs.readFileSync('./ssl/server.key'),
   cert: fs.readFileSync('./ssl/server.crt'),
