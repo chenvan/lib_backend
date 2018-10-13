@@ -33,7 +33,7 @@
 
 8. 补全 validate 文件夹以及证书(看具体情况)
 
-9. 运行 knex migrate:latest --env prodution
+9. 运行 knex migrate:latest --env production
 
 10. 运行 addUser.js, addBook.js. 格式为 NODE_ENV=production node script.js data.txt
 
